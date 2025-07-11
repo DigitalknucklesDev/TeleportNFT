@@ -3,9 +3,10 @@ let registryAddress = window.ERC6551_REGISTRY_ADDRESS;
 let implementationAddress = window.TELEPORT_ACCOUNT_ADDRESS;
 let nftContractAddress = window.NFT_CONTRACT_ADDRESS;
 
-let provider, signer, contract, registry;
+let provider, signer, contract, registry, nftContract;
 let tokenId;
 let userAddress;
+let cooldownEndsAt = 0;
 
 const imgEl = document.getElementById("nft-img");
 const statusEl = document.getElementById("status");
@@ -25,8 +26,6 @@ metaDisplay.style.color = "#0ff";
 metaDisplay.style.fontSize = "13px";
 metaDisplay.style.marginTop = "5px";
 document.body.appendChild(metaDisplay);
-
-let cooldownEndsAt = 0;
 
 const ipfsGateway = cid =>
   typeof cid === "string" && cid.startsWith("ipfs://")
@@ -53,8 +52,8 @@ window.onload = async () => {
     const nftABI = await fetch("nftABI.json").then(res => res.json());
 
     contract = new ethers.Contract(contractAddress, contractABI, signer);
-    nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
     registry = new ethers.Contract(registryAddress, registryABI, provider);
+    nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
 
     teleportBtn.addEventListener("click", onTeleport);
 
@@ -80,7 +79,7 @@ window.onload = async () => {
 };
 
 async function getOwnedTokens(address) {
-  const maxTokenId = 1000; // Adjust as needed
+  const maxTokenId = 1000; // Adjust if needed
   const owned = [];
 
   for (let i = 0; i < maxTokenId; i++) {
@@ -89,8 +88,8 @@ async function getOwnedTokens(address) {
       if (owner.toLowerCase() === address.toLowerCase()) {
         owned.push(i);
       }
-    } catch (err) {
-      // Token doesn't exist or not owned
+    } catch (_) {
+      // Token doesn't exist or is burned
     }
   }
 
@@ -167,14 +166,18 @@ function determineImageCID(state) {
 }
 
 function updateCooldown() {
+  if (!tokenId) return;
+
   const now = Math.floor(Date.now() / 1000);
   const diff = cooldownEndsAt - now;
 
   if (diff > 0) {
     statusEl.textContent = `⏳ Cooldown: ${diff}s`;
+    teleportBtn.disabled = true;
     teleportBtn.classList.add("btn-disabled");
   } else {
-    statusEl.textContent = `🟢 Ready`;
+    statusEl.textContent = "🟢 Ready";
+    teleportBtn.disabled = false;
     teleportBtn.classList.remove("btn-disabled");
   }
 }
@@ -199,18 +202,25 @@ async function onTeleport() {
 }
 
 function listenToEvents() {
+  contract.removeAllListeners("TeleportTriggered");
+  contract.removeAllListeners("CooldownStarted");
+
   contract.on("TeleportTriggered", async (_nft, fromId, toId) => {
     if ([fromId, toId].map(Number).includes(tokenId)) {
       teleportSound.currentTime = 0;
       teleportSound.play();
       document.body.style.filter = "invert(1)";
-      setTimeout(() => (document.body.style.filter = "invert(0)"), 600);
+      setTimeout(() => {
+        document.body.style.filter = "invert(0)";
+      }, 600);
       await refreshUI();
     }
   });
 
   contract.on("CooldownStarted", async (_nft, tId) => {
-    if (Number(tId) === tokenId) await refreshUI();
+    if (Number(tId) === tokenId) {
+      await refreshUI();
+    }
   });
 }
 
