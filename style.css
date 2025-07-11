@@ -41,7 +41,16 @@ h1 {
   margin-bottom: 1rem;
   font-size: 1.8rem;
 }
-
+#token-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.nft-button {
+  margin: 5px;
+  font-size: 14px;
+  border-radius: 6px;
+}
 .nft-container {
   position: relative;
   margin-bottom: 1rem;
