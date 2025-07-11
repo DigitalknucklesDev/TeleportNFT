@@ -20,11 +20,11 @@ agentDisplay.style.fontSize = "13px";
 agentDisplay.style.marginTop = "10px";
 document.body.appendChild(agentDisplay);
 
-const tbaBalanceDisplay = document.createElement("div");
-tbaBalanceDisplay.style.color = "#fff";
-tbaBalanceDisplay.style.fontSize = "12px";
-tbaBalanceDisplay.style.marginTop = "4px";
-document.body.appendChild(tbaBalanceDisplay);
+const metaDisplay = document.createElement("div");
+metaDisplay.style.color = "#0ff";
+metaDisplay.style.fontSize = "13px";
+metaDisplay.style.marginTop = "5px";
+document.body.appendChild(metaDisplay);
 
 let cooldownEndsAt = 0;
 
@@ -50,12 +50,7 @@ window.onload = async () => {
 
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
-
-    const nftABI = [
-      "function balanceOf(address) view returns (uint256)",
-      "function tokenOfOwnerByIndex(address, uint256) view returns (uint256)",
-      "function ownerOf(uint256) view returns (address)"
-    ];
+    const nftABI = await fetch("nftABI.json").then(res => res.json());
 
     contract = new ethers.Contract(contractAddress, contractABI, signer);
     nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
@@ -85,29 +80,21 @@ window.onload = async () => {
 };
 
 async function getOwnedTokens(address) {
-  try {
-    const balance = await nftContract.balanceOf(address);
-    const ids = [];
+  const maxTokenId = 1000; // Adjust as needed
+  const owned = [];
 
-    for (let i = 0; i < balance; i++) {
-      const id = await nftContract.tokenOfOwnerByIndex(address, i);
-      ids.push(id.toNumber());
+  for (let i = 0; i < maxTokenId; i++) {
+    try {
+      const owner = await nftContract.ownerOf(i);
+      if (owner.toLowerCase() === address.toLowerCase()) {
+        owned.push(i);
+      }
+    } catch (err) {
+      // Token doesn't exist or not owned
     }
-
-    return ids;
-  } catch (err) {
-    console.warn("Enumerable not supported. Fallback to brute-force.");
-    const ids = [];
-    for (let i = 0; i < 100; i++) {
-      try {
-        const owner = await nftContract.ownerOf(i);
-        if (owner.toLowerCase() === address.toLowerCase()) {
-          ids.push(i);
-        }
-      } catch {}
-    }
-    return ids;
   }
+
+  return owned;
 }
 
 function renderTokenGallery(tokenIds) {
@@ -122,15 +109,9 @@ function renderTokenGallery(tokenIds) {
   gallery.style.gap = "10px";
   gallery.style.margin = "10px 0";
 
-  tokenIds.forEach(async id => {
-    const state = await contract.getState(nftContractAddress, tokenId);
-    const state = await contract.getState(nftContractAddress, id);
-    const pairId = await contract.tokenPair(nftContractAddress, id);
-    const isCooldown = state.isCooldown;
-    const isMerged = state.isMerged;
-
+  tokenIds.forEach(id => {
     const btn = document.createElement("button");
-    btn.textContent = `#${id} ${isMerged ? '🧬' : ''} ${isCooldown ? '⏳' : '🟢'} Pair: ${pairId}`;
+    btn.textContent = `Token #${id}`;
     btn.className = "nft-button";
     btn.style.padding = "6px 12px";
     btn.style.background = "#111";
@@ -163,6 +144,7 @@ async function refreshUI() {
 
     teleportBtn.disabled = false;
     await updateAgentDisplay();
+    updateMetaDisplay(state);
   } catch (err) {
     console.error("refreshUI error:", err);
     statusEl.textContent = "❌ Could not fetch state.";
@@ -236,20 +218,24 @@ async function updateAgentDisplay() {
   try {
     const network = await provider.getNetwork();
     const chainId = network.chainId;
-    const tbaAddress = await registry.account(
+    const accountAddress = await registry.account(
       implementationAddress,
       chainId,
       nftContractAddress,
       tokenId,
       0
     );
-    agentDisplay.textContent = `Executor (Agent): ${tbaAddress}`;
-
-    const balance = await provider.getBalance(tbaAddress);
-    tbaBalanceDisplay.textContent = `💰 TBA Balance: ${ethers.utils.formatEther(balance)} ETH`;
+    agentDisplay.textContent = `Executor (Agent): ${accountAddress}`;
   } catch (err) {
     console.warn("ERC-6551 resolution failed:", err);
     agentDisplay.textContent = "Executor (Agent): Unknown";
-    tbaBalanceDisplay.textContent = "";
   }
+}
+
+function updateMetaDisplay(state) {
+  metaDisplay.innerHTML = `
+    <div>🧬 <strong>isMerged:</strong> ${state.isMerged}</div>
+    <div>⏳ <strong>isCooldown:</strong> ${state.isCooldown}</div>
+    <div>🖼️ <strong>currentCID:</strong> ${state.currentCID}</div>
+  `;
 }
