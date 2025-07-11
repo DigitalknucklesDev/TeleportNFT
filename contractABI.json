@@ -6,10 +6,18 @@
     ],
     "name": "getState",
     "outputs": [
-      { "internalType": "bool", "name": "isMerged", "type": "bool" },
-      { "internalType": "bool", "name": "isCooldown", "type": "bool" },
-      { "internalType": "string", "name": "currentCID", "type": "string" },
-      { "internalType": "uint256", "name": "lastTeleport", "type": "uint256" }
+      {
+        "components": [
+          { "internalType": "string", "name": "currentCID", "type": "string" },
+          { "internalType": "string", "name": "altCID", "type": "string" },
+          { "internalType": "bool", "name": "isMerged", "type": "bool" },
+          { "internalType": "uint256", "name": "lastTeleport", "type": "uint256" },
+          { "internalType": "bool", "name": "isCooldown", "type": "bool" }
+        ],
+        "internalType": "struct TeleportController.TeleportState",
+        "name": "",
+        "type": "tuple"
+      }
     ],
     "stateMutability": "view",
     "type": "function"
