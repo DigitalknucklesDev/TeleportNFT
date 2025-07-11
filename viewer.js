@@ -123,6 +123,7 @@ function renderTokenGallery(tokenIds) {
   gallery.style.margin = "10px 0";
 
   tokenIds.forEach(async id => {
+    const state = await contract.getState(nftContractAddress, tokenId);
     const state = await contract.getState(nftContractAddress, id);
     const pairId = await contract.tokenPair(nftContractAddress, id);
     const isCooldown = state.isCooldown;
