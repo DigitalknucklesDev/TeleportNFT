@@ -1,0 +1,47 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "nft", "type": "address" },
+      { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+    ],
+    "name": "getState",
+    "outputs": [
+      { "internalType": "bool", "name": "isMerged", "type": "bool" },
+      { "internalType": "bool", "name": "isCooldown", "type": "bool" },
+      { "internalType": "string", "name": "currentCID", "type": "string" },
+      { "internalType": "uint256", "name": "lastTeleport", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "nft", "type": "address" },
+      { "internalType": "uint256", "name": "fromTokenId", "type": "uint256" },
+      { "internalType": "uint256", "name": "toTokenId", "type": "uint256" }
+    ],
+    "name": "teleport",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "nft", "type": "address" },
+      { "indexed": true, "internalType": "uint256", "name": "fromTokenId", "type": "uint256" },
+      { "indexed": true, "internalType": "uint256", "name": "toTokenId", "type": "uint256" }
+    ],
+    "name": "TeleportTriggered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "nft", "type": "address" },
+      { "indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+    ],
+    "name": "CooldownStarted",
+    "type": "event"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "name": "Teleport NFT #1",
+  "description": "Quantum adaptive NFT that merges and teleports between dimensions.",
+  "image": "ipfs://bafybeiayekrbt5rirlewyq6zfqx6r3ygwfsrwjqdmqohxcr5rmo5c2tadm",
+  "animation_url": "ipfs://bafybeifiguhcfo63sjbsga547ljuf4ly2kbytnmhvixu2y3phmtyrh7o7i",
+  "external_url": "https://ipfs.io/ipfs/bafybeih6ibbprauxsscvtcxcjl637hlluavg5uwllyrb7d7vtfwib2asre/viewer.html?id=1",
+  "token_bound_account": "dynamic", 
+  "attributes": [
+    { "trait_type": "State", "value": "Merged" },
+    { "trait_type": "Energy Level", "value": 77 },
+    { "trait_type": "Teleport Linked", "value": "Yes" },
+    { "trait_type": "Executor", "value": "ERC-6551 Agent" },
+    { "trait_type": "Recursive Ownership", "value": "Enabled" }
+  ]
+}
