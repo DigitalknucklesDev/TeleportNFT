@@ -45,7 +45,15 @@ window.onload = async () => {
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
 
-    const controllerABI = await fetch("controllerABI.json").then(res => res.json());
+    async function loadABI(path) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`Could not load ABI: ${path}`);
+      return res.json();
+    }
+    // Usage
+    const controllerABI = await loadABI("controllerABI.json");
+    //XXXconst controllerABI = await fetch("controllerABI.json").then(res => res.json());
+    
     const nftABI = await fetch("nftABI.json").then(res => res.json());
 
   contract = new ethers.Contract(contractAddress, controllerABI, signer);
