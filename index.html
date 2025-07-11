@@ -2,43 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Teleport NFT Viewer</title>
-<link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: black; color: white; font-family: sans-serif; text-align: center; padding: 2em; }
+    #nft-img { width: 300px; border-radius: 12px; box-shadow: 0 0 20px #0ff; }
+    .btn { margin: 1em; padding: 1em 2em; font-size: 1em; cursor: pointer; border-radius: 8px; border: none; }
+    .btn-disabled { opacity: 0.5; pointer-events: none; }
+    .message-icon { margin-top: 1em; }
+    .message-icon.active { color: yellow; }
+    .message-icon.muted { color: gray; }
+    #background-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-size: cover; opacity: 0.1; }
+  </style>
 </head>
 <body>
+  <div id="background-layer"></div>
+  <h1>Teleport NFT Viewer</h1>
+  <img id="nft-img" src="" alt="NFT Image" /><br />
+  <div id="status">⏳ Loading...</div>
+  <button id="teleport-btn" class="btn">🚀 Teleport</button>
+  <div id="message" class="message-icon">🔄</div>
+  <audio id="teleport-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_6557b2b0df.mp3"></audio>
 
-  <div id="background-layer" class="background"></div>
-
-  <div class="content">
-    <h1>Teleport NFT Viewer</h1>
-    <div class="nft-container">
-      <img id="nft-img" alt="Teleport NFT" class="nft-image" />
-    </div>
-    
-    <div id="message" class="message-icon">🟢 Ready</div>
-    <div id="status" class="status-text">Loading...</div>
-    
-    <button id="teleport-btn" class="teleport-button">🚀 Teleport</button>
-    
-    <div class="agent-bar" id="agent">
-      Agent: <span id="agent-address">Detecting...</span>
-    </div>
-
-    <audio id="teleport-sound" preload="auto">
-      <source src="audio/teleport.mp3" type="audio/mpeg" />
-    </audio>
-  </div>
-
-  <audio id="teleport-sound" src="audio/teleport.mp3" preload="auto"></audio>
-
-  <!-- Dependencies -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.min.js"></script>
-
-  <!-- Config + Viewer -->
-  <!--<script src="injected-config.js"></script>-->
+  <!-- Ethers v5 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="config.js"></script>
   <script src="viewer.js"></script>
-
 </body>
 </html>
