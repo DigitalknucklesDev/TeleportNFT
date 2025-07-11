@@ -1,5 +1,3 @@
-const ethers = window.ethers;
-
 let contractAddress = window.CONTRACT_ADDRESS;
 let registryAddress = window.ERC6551_REGISTRY_ADDRESS;
 let implementationAddress = window.TELEPORT_ACCOUNT_ADDRESS;
@@ -41,8 +39,8 @@ window.onload = async () => {
   }
 
   try {
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
 
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
@@ -147,7 +145,8 @@ function listenToEvents() {
 
 async function updateAgentDisplay() {
   try {
-    const chainId = await provider.getNetwork().then(n => n.chainId);
+    const network = await provider.getNetwork();
+    const chainId = network.chainId;
     const accountAddress = await registry.account(
       implementationAddress,
       chainId,
