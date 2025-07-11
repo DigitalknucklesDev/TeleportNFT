@@ -5,7 +5,7 @@ let registryAddress = window.ERC6551_REGISTRY_ADDRESS;
 let implementationAddress = window.TELEPORT_ACCOUNT_ADDRESS;
 let nftContractAddress = window.NFT_CONTRACT_ADDRESS;
 
-let provider, signer, contract, registry, readOnlyContract;
+let provider, signer, contract, registry;
 let tokenId;
 
 const imgEl = document.getElementById("nft-img");
@@ -28,11 +28,6 @@ const ipfsGateway = cid =>
     ? `https://ipfs.io/ipfs/${cid.slice(7)}`
     : cid;
 
-// 🔧 Set up Sepolia provider (for all reads)
-const SEPOLIA_RPC = "https://sepolia.infura.io/v3/7b1a0dca95cf4d93a958234fa8ebd834";
-const sepoliaProvider = new ethers.JsonRpcProvider(SEPOLIA_RPC);
-const SEPOLIA_CHAIN_ID = '0xaa36a7';
-
 window.onload = async () => {
   const urlParams = new URLSearchParams(window.location.search);
   tokenId = parseInt(urlParams.get("id") || "1");
@@ -46,27 +41,14 @@ window.onload = async () => {
   }
 
   try {
-    // 🔄 Force wallet to Sepolia
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (chainId !== SEPOLIA_CHAIN_ID) {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: SEPOLIA_CHAIN_ID }],
-      });
-    }
-
     provider = new ethers.BrowserProvider(window.ethereum);
     signer = await provider.getSigner();
 
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
 
-    // Use signer for txs
     contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-    // Use read-only provider for views
-    readOnlyContract = new ethers.Contract(contractAddress, contractABI, sepoliaProvider);
-    registry = new ethers.Contract(registryAddress, registryABI, sepoliaProvider);
+    registry = new ethers.Contract(registryAddress, registryABI, provider);
 
     teleportBtn.addEventListener("click", onTeleport);
 
@@ -81,7 +63,7 @@ window.onload = async () => {
 
 async function refreshUI() {
   try {
-    const state = await readOnlyContract.getState(nftContractAddress, tokenId);
+    const state = await contract.getState(nftContractAddress, tokenId);
     cooldownEndsAt = Number(state.lastTeleport) + 86400;
 
     const imageCID = determineImageCID(state);
@@ -165,7 +147,7 @@ function listenToEvents() {
 
 async function updateAgentDisplay() {
   try {
-    const chainId = await sepoliaProvider.getNetwork().then(n => n.chainId);
+    const chainId = await provider.getNetwork().then(n => n.chainId);
     const accountAddress = await registry.account(
       implementationAddress,
       chainId,
