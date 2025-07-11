@@ -54,6 +54,10 @@ h1 {
 .nft-container {
   position: relative;
   margin-bottom: 1rem;
+  min-height: 300px; /* ensures space even before image loads */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .nft-image {
