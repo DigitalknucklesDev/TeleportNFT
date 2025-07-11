@@ -45,12 +45,25 @@ window.onload = async () => {
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
 
+    const controllerABI = await fetch("controllerABI.json").then(res => res.json());
+    const nftABI = await fetch("nftABI.json").then(res => res.json());
+
+  contract = new ethers.Contract(contractAddress, controllerABI, signer);
+  nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
+
+
+        // Controller contract (for teleport, getState, etc.)
     contract = new ethers.Contract(contractAddress, contractABI, signer);
+    
+    // NFT contract (to check token ownership)
+    nftContract = new ethers.Contract(nftContractAddress, contractABI, provider);
+            //contract = new ethers.Contract(contractAddress, contractABI, signer);XXXXXXXXX
     registry = new ethers.Contract(registryAddress, registryABI, provider);
 
     teleportBtn.addEventListener("click", onTeleport);
 
     const ownedTokenIds = await getOwnedTokens(userAddress);
+    
     renderTokenGallery(ownedTokenIds);
 
     // Default to token from URL or first owned token
@@ -73,10 +86,10 @@ window.onload = async () => {
 };
 
 async function getOwnedTokens(address) {
-  const balance = await contract.balanceOf(address);
+  const balance = await nftContract.balanceOf(address);
   const ids = [];
   for (let i = 0; i < balance; i++) {
-    const id = await contract.tokenOfOwnerByIndex(address, i);
+    const id = await nftContract.tokenOfOwnerByIndex(address, i);
     ids.push(id.toNumber());
   }
   return ids;
