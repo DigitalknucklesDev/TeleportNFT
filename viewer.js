@@ -20,6 +20,12 @@ agentDisplay.style.fontSize = "13px";
 agentDisplay.style.marginTop = "10px";
 document.body.appendChild(agentDisplay);
 
+const tbaBalanceDisplay = document.createElement("div");
+tbaBalanceDisplay.style.color = "#fff";
+tbaBalanceDisplay.style.fontSize = "12px";
+tbaBalanceDisplay.style.marginTop = "4px";
+document.body.appendChild(tbaBalanceDisplay);
+
 let cooldownEndsAt = 0;
 
 const ipfsGateway = cid =>
@@ -45,36 +51,21 @@ window.onload = async () => {
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
 
-    async function loadABI(path) {
-      const res = await fetch(path);
-      if (!res.ok) throw new Error(`Could not load ABI: ${path}`);
-      return res.json();
-    }
-    // Usage
-    const controllerABI = await loadABI("controllerABI.json");
-    //XXXconst controllerABI = await fetch("controllerABI.json").then(res => res.json());
-    
-    const nftABI = await fetch("nftABI.json").then(res => res.json());
+    const nftABI = [
+      "function balanceOf(address) view returns (uint256)",
+      "function tokenOfOwnerByIndex(address, uint256) view returns (uint256)",
+      "function ownerOf(uint256) view returns (address)"
+    ];
 
-  contract = new ethers.Contract(contractAddress, controllerABI, signer);
-  nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
-
-
-        // Controller contract (for teleport, getState, etc.)
     contract = new ethers.Contract(contractAddress, contractABI, signer);
-    
-    // NFT contract (to check token ownership)
-    nftContract = new ethers.Contract(nftContractAddress, contractABI, provider);
-            //contract = new ethers.Contract(contractAddress, contractABI, signer);XXXXXXXXX
+    nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
     registry = new ethers.Contract(registryAddress, registryABI, provider);
 
     teleportBtn.addEventListener("click", onTeleport);
 
     const ownedTokenIds = await getOwnedTokens(userAddress);
-    
     renderTokenGallery(ownedTokenIds);
 
-    // Default to token from URL or first owned token
     const urlParams = new URLSearchParams(window.location.search);
     const urlTokenId = parseInt(urlParams.get("id"));
     if (!isNaN(urlTokenId) && ownedTokenIds.includes(urlTokenId)) {
@@ -94,13 +85,29 @@ window.onload = async () => {
 };
 
 async function getOwnedTokens(address) {
-  const balance = await nftContract.balanceOf(address);
-  const ids = [];
-  for (let i = 0; i < balance; i++) {
-    const id = await nftContract.tokenOfOwnerByIndex(address, i);
-    ids.push(id.toNumber());
+  try {
+    const balance = await nftContract.balanceOf(address);
+    const ids = [];
+
+    for (let i = 0; i < balance; i++) {
+      const id = await nftContract.tokenOfOwnerByIndex(address, i);
+      ids.push(id.toNumber());
+    }
+
+    return ids;
+  } catch (err) {
+    console.warn("Enumerable not supported. Fallback to brute-force.");
+    const ids = [];
+    for (let i = 0; i < 100; i++) {
+      try {
+        const owner = await nftContract.ownerOf(i);
+        if (owner.toLowerCase() === address.toLowerCase()) {
+          ids.push(i);
+        }
+      } catch {}
+    }
+    return ids;
   }
-  return ids;
 }
 
 function renderTokenGallery(tokenIds) {
@@ -115,9 +122,14 @@ function renderTokenGallery(tokenIds) {
   gallery.style.gap = "10px";
   gallery.style.margin = "10px 0";
 
-  tokenIds.forEach(id => {
+  tokenIds.forEach(async id => {
+    const state = await contract.getState(nftContractAddress, id);
+    const pairId = await contract.tokenPair(nftContractAddress, id);
+    const isCooldown = state.isCooldown;
+    const isMerged = state.isMerged;
+
     const btn = document.createElement("button");
-    btn.textContent = `Token #${id}`;
+    btn.textContent = `#${id} ${isMerged ? '🧬' : ''} ${isCooldown ? '⏳' : '🟢'} Pair: ${pairId}`;
     btn.className = "nft-button";
     btn.style.padding = "6px 12px";
     btn.style.background = "#111";
@@ -223,16 +235,20 @@ async function updateAgentDisplay() {
   try {
     const network = await provider.getNetwork();
     const chainId = network.chainId;
-    const accountAddress = await registry.account(
+    const tbaAddress = await registry.account(
       implementationAddress,
       chainId,
       nftContractAddress,
       tokenId,
       0
     );
-    agentDisplay.textContent = `Executor (Agent): ${accountAddress}`;
+    agentDisplay.textContent = `Executor (Agent): ${tbaAddress}`;
+
+    const balance = await provider.getBalance(tbaAddress);
+    tbaBalanceDisplay.textContent = `💰 TBA Balance: ${ethers.utils.formatEther(balance)} ETH`;
   } catch (err) {
     console.warn("ERC-6551 resolution failed:", err);
     agentDisplay.textContent = "Executor (Agent): Unknown";
+    tbaBalanceDisplay.textContent = "";
   }
 }
