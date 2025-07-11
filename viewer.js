@@ -5,6 +5,7 @@ let nftContractAddress = window.NFT_CONTRACT_ADDRESS;
 
 let provider, signer, contract, registry;
 let tokenId;
+let userAddress;
 
 const imgEl = document.getElementById("nft-img");
 const statusEl = document.getElementById("status");
@@ -27,9 +28,6 @@ const ipfsGateway = cid =>
     : cid;
 
 window.onload = async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  tokenId = parseInt(urlParams.get("id") || "1");
-
   bgEl.style.backgroundImage = `url(${ipfsGateway(window.BACKGROUND_CID)})`;
 
   if (!window.ethereum) {
@@ -42,6 +40,7 @@ window.onload = async () => {
     provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
+    userAddress = await signer.getAddress();
 
     const contractABI = await fetch("contractABI.json").then(res => res.json());
     const registryABI = await fetch("registryABI.json").then(res => res.json());
@@ -51,7 +50,20 @@ window.onload = async () => {
 
     teleportBtn.addEventListener("click", onTeleport);
 
-    await refreshUI();
+    const ownedTokenIds = await getOwnedTokens(userAddress);
+    renderTokenGallery(ownedTokenIds);
+
+    // Default to token from URL or first owned token
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTokenId = parseInt(urlParams.get("id"));
+    if (!isNaN(urlTokenId) && ownedTokenIds.includes(urlTokenId)) {
+      selectToken(urlTokenId);
+    } else if (ownedTokenIds.length > 0) {
+      selectToken(ownedTokenIds[0]);
+    } else {
+      statusEl.textContent = "❌ No TeleportNFTs found in your wallet.";
+    }
+
     setInterval(updateCooldown, 1000);
     listenToEvents();
   } catch (err) {
@@ -59,6 +71,50 @@ window.onload = async () => {
     statusEl.textContent = "❌ Connection failed.";
   }
 };
+
+async function getOwnedTokens(address) {
+  const balance = await contract.balanceOf(address);
+  const ids = [];
+  for (let i = 0; i < balance; i++) {
+    const id = await contract.tokenOfOwnerByIndex(address, i);
+    ids.push(id.toNumber());
+  }
+  return ids;
+}
+
+function renderTokenGallery(tokenIds) {
+  const existingGallery = document.getElementById("token-gallery");
+  if (existingGallery) existingGallery.remove();
+
+  const gallery = document.createElement("div");
+  gallery.id = "token-gallery";
+  gallery.style.display = "flex";
+  gallery.style.flexWrap = "wrap";
+  gallery.style.justifyContent = "center";
+  gallery.style.gap = "10px";
+  gallery.style.margin = "10px 0";
+
+  tokenIds.forEach(id => {
+    const btn = document.createElement("button");
+    btn.textContent = `Token #${id}`;
+    btn.className = "nft-button";
+    btn.style.padding = "6px 12px";
+    btn.style.background = "#111";
+    btn.style.color = "#0ff";
+    btn.style.border = "1px solid #0ff";
+    btn.style.cursor = "pointer";
+    btn.onclick = () => selectToken(id);
+    gallery.appendChild(btn);
+  });
+
+  document.body.insertBefore(gallery, imgEl);
+}
+
+async function selectToken(id) {
+  tokenId = id;
+  statusEl.textContent = `Selected Token #${tokenId}`;
+  await refreshUI();
+}
 
 async function refreshUI() {
   try {
@@ -72,8 +128,6 @@ async function refreshUI() {
     messageIcon.className = state.isCooldown ? "message-icon active" : "message-icon muted";
 
     teleportBtn.disabled = false;
-    statusEl.textContent = `Token #${tokenId}`;
-
     await updateAgentDisplay();
   } catch (err) {
     console.error("refreshUI error:", err);
