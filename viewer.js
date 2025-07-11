@@ -145,7 +145,8 @@ function listenToEvents() {
 
 async function updateAgentDisplay() {
   try {
-    const chainId = await provider.getNetwork().then(n => n.chainId);
+    const network = await provider.getNetwork();
+    const chainId = network.chainId;
     const accountAddress = await registry.account(
       implementationAddress,
       chainId,
