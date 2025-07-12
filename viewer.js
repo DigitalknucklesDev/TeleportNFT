@@ -6,7 +6,6 @@ let nftContractAddress = window.NFT_CONTRACT_ADDRESS;
 let provider, signer, contract, registry, nftContract;
 let tokenId;
 let userAddress;
-let cooldownEndsAt = 0;
 
 const imgEl = document.getElementById("nft-img");
 const statusEl = document.getElementById("status");
@@ -27,33 +26,37 @@ metaDisplay.style.fontSize = "13px";
 metaDisplay.style.marginTop = "5px";
 document.body.appendChild(metaDisplay);
 
+let cooldownEndsAt = 0;
+
 const ipfsGateway = cid =>
   typeof cid === "string" && cid.startsWith("ipfs://")
     ? `https://ipfs.io/ipfs/${cid.slice(7)}`
     : cid;
 
-window.onload = async () => {
-  bgEl.style.backgroundImage = `url(${ipfsGateway(window.BACKGROUND_CID)})`;
-
-  if (!window.ethereum) {
-    statusEl.textContent = "🦊 MetaMask required.";
-    teleportBtn.disabled = true;
-    return;
-  }
-
+window.addEventListener("DOMContentLoaded", async () => {
   try {
+    bgEl.style.backgroundImage = `url(${ipfsGateway(window.BACKGROUND_CID)})`;
+
+    if (!window.ethereum) {
+      statusEl.textContent = "🦊 MetaMask required.";
+      teleportBtn.disabled = true;
+      return;
+    }
+
     provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
     userAddress = await signer.getAddress();
 
-    const contractABI = await fetch("contractABI.json").then(res => res.json());
-    const registryABI = await fetch("registryABI.json").then(res => res.json());
-    const nftABI = await fetch("nftABI.json").then(res => res.json());
+    const [contractABI, registryABI, nftABI] = await Promise.all([
+      fetch("contractABI.json").then(res => res.json()),
+      fetch("registryABI.json").then(res => res.json()),
+      fetch("nftABI.json").then(res => res.json())
+    ]);
 
     contract = new ethers.Contract(contractAddress, contractABI, signer);
-    registry = new ethers.Contract(registryAddress, registryABI, provider);
     nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
+    registry = new ethers.Contract(registryAddress, registryABI, provider);
 
     teleportBtn.addEventListener("click", onTeleport);
 
@@ -62,10 +65,11 @@ window.onload = async () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const urlTokenId = parseInt(urlParams.get("id"));
+
     if (!isNaN(urlTokenId) && ownedTokenIds.includes(urlTokenId)) {
-      selectToken(urlTokenId);
+      await selectToken(urlTokenId);
     } else if (ownedTokenIds.length > 0) {
-      selectToken(ownedTokenIds[0]);
+      await selectToken(ownedTokenIds[0]);
     } else {
       statusEl.textContent = "❌ No TeleportNFTs found in your wallet.";
     }
@@ -73,13 +77,13 @@ window.onload = async () => {
     setInterval(updateCooldown, 1000);
     listenToEvents();
   } catch (err) {
-    console.error(err);
+    console.error("Onload error:", err);
     statusEl.textContent = "❌ Connection failed.";
   }
-};
+});
 
 async function getOwnedTokens(address) {
-  const maxTokenId = 1000; // Adjust if needed
+  const maxTokenId = 1000; // Adjust as needed
   const owned = [];
 
   for (let i = 0; i < maxTokenId; i++) {
@@ -88,8 +92,8 @@ async function getOwnedTokens(address) {
       if (owner.toLowerCase() === address.toLowerCase()) {
         owned.push(i);
       }
-    } catch (_) {
-      // Token doesn't exist or is burned
+    } catch (err) {
+      // Token doesn't exist or not owned
     }
   }
 
@@ -166,18 +170,14 @@ function determineImageCID(state) {
 }
 
 function updateCooldown() {
-  if (!tokenId) return;
-
   const now = Math.floor(Date.now() / 1000);
   const diff = cooldownEndsAt - now;
 
   if (diff > 0) {
     statusEl.textContent = `⏳ Cooldown: ${diff}s`;
-    teleportBtn.disabled = true;
     teleportBtn.classList.add("btn-disabled");
   } else {
-    statusEl.textContent = "🟢 Ready";
-    teleportBtn.disabled = false;
+    statusEl.textContent = `🟢 Ready`;
     teleportBtn.classList.remove("btn-disabled");
   }
 }
@@ -202,25 +202,18 @@ async function onTeleport() {
 }
 
 function listenToEvents() {
-  contract.removeAllListeners("TeleportTriggered");
-  contract.removeAllListeners("CooldownStarted");
-
   contract.on("TeleportTriggered", async (_nft, fromId, toId) => {
     if ([fromId, toId].map(Number).includes(tokenId)) {
       teleportSound.currentTime = 0;
       teleportSound.play();
       document.body.style.filter = "invert(1)";
-      setTimeout(() => {
-        document.body.style.filter = "invert(0)";
-      }, 600);
+      setTimeout(() => (document.body.style.filter = "invert(0)"), 600);
       await refreshUI();
     }
   });
 
   contract.on("CooldownStarted", async (_nft, tId) => {
-    if (Number(tId) === tokenId) {
-      await refreshUI();
-    }
+    if (Number(tId) === tokenId) await refreshUI();
   });
 }
 
