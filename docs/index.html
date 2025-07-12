@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teleport Agents</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Background blur layer -->
+  <div class="background-layer" id="background-layer"></div>
+
+  <!-- Main container -->
+  <div class="container">
+    <h1>HB Agent</h1>
+
+    <!-- NFT display area -->
+    <div class="nft-display">
+      <img id="nftImage" src="" alt="NFT Display" />
+      <img id="overlay" class="overlay hidden" src="" alt="Animated/GIF Layer" />
+    </div>
+
+    <!-- Cooldown (optional for smart contract logic) -->
+    <div class="cooldown" id="cooldownDisplay">⌛ Cooldown: --</div>
+
+    <!-- Connection / Status message -->
+    <div class="status" id="status">Connecting...</div>
+
+    <!-- State switching: Button -->
+    <div class="buttons">
+      <button id="teleport-toggle">Toggle State</button>
+    </div>
+
+    <!-- Audio effect -->
+    <audio id="teleport-sound" src="teleport.mp3" preload="auto"></audio>
+  </div>
+
+  <!-- Scripts -->
+  <script src="config.js"></script>
+  <script src="index.js" type="module"></script>
+</body>
+</html>
