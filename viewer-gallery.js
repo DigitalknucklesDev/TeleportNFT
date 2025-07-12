@@ -1,127 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple NFT Viewer</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <style>
-    body {
-      background: #111;
-      color: #0ff;
-      font-family: monospace;
-      text-align: center;
-      padding: 2rem;
+const nftContractAddress = window.NFT_CONTRACT_ADDRESS;
+let provider, signer, nftContract;
+let tokenId, userAddress;
+
+const imgEl = document.getElementById("nft-img");
+const statusEl = document.getElementById("status");
+const bgEl = document.getElementById("background-layer");
+const metaDisplay = document.getElementById("meta");
+
+const ipfsGateway = cid =>
+  typeof cid === "string" && cid.startsWith("ipfs://")
+    ? `https://ipfs.io/ipfs/${cid.slice(7)}`
+    : cid;
+
+window.addEventListener("load", async () => {
+  try {
+    if (!window.ethereum) {
+      statusEl.textContent = "🦊 MetaMask required.";
+      return;
     }
-    .nft-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 2rem;
+
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    userAddress = await signer.getAddress();
+
+    const nftABI = await fetch("nftABI.json").then(r => r.json());
+    nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
+
+    bgEl.style.backgroundImage = `url(${ipfsGateway(window.BACKGROUND_CID)})`;
+
+    const owned = await getOwnedTokens(userAddress);
+    renderTokenGallery(owned);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTokenId = parseInt(urlParams.get("id"));
+    if (!isNaN(urlTokenId) && owned.includes(urlTokenId)) {
+      selectToken(urlTokenId);
+    } else if (owned.length > 0) {
+      selectToken(owned[0]);
+    } else {
+      statusEl.textContent = "❌ No NFTs found.";
     }
-    .nft-card {
-      background: #222;
-      border: 1px solid #0ff;
-      padding: 1rem;
-      border-radius: 10px;
-      max-width: 240px;
-    }
-    .nft-card img {
-      width: 100%;
-      border-radius: 8px;
-    }
-    .swap-btn {
-      margin-top: 0.5rem;
-      background: #0ff;
-      color: #000;
-      border: none;
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <h1>🔍 Simple NFT Viewer</h1>
-  <button id="connect">Connect Wallet</button>
-  <div id="status"></div>
-  <div class="nft-container" id="nft-gallery"></div>
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "❌ Connection failed.";
+  }
+});
 
-  <script>
-    const contractAddress = 'YOUR_ERC721_CONTRACT_ADDRESS';
-    const contractABIUrl = 'nftABI.json';
-    const maxTokenId = 50;
-
-    let provider, signer, nftContract, userAddress;
-    let cidMap = {
-      default: "ipfs://QmDefaultImage",
-      state1: "ipfs://QmState1Image",
-      state2: "ipfs://QmState2Image"
-    };
-
-    const ipfsGateway = cid =>
-      cid.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${cid.slice(7)}` : cid;
-
-    document.getElementById('connect').onclick = async () => {
-      if (!window.ethereum) return alert('🦊 MetaMask required');
-      provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      signer = provider.getSigner();
-      userAddress = await signer.getAddress();
-
-      const abi = await fetch(contractABIUrl).then(r => r.json());
-      nftContract = new ethers.Contract(contractAddress, abi, provider);
-
-      const ownedIds = await getOwnedNFTs(userAddress);
-      renderGallery(ownedIds);
-    };
-
-    async function getOwnedNFTs(address) {
-      const owned = [];
-      for (let i = 0; i < maxTokenId; i++) {
-        try {
-          const owner = await nftContract.ownerOf(i);
-          if (owner.toLowerCase() === address.toLowerCase()) {
-            owned.push(i);
-          }
-        } catch {}
+async function getOwnedTokens(address) {
+  const maxTokenId = 1000;
+  const owned = [];
+  for (let i = 0; i < maxTokenId; i++) {
+    try {
+      const owner = await nftContract.ownerOf(i);
+      if (owner.toLowerCase() === address.toLowerCase()) {
+        owned.push(i);
       }
-      return owned;
-    }
+    } catch {}
+  }
+  return owned;
+}
 
-    function renderGallery(tokenIds) {
-      const gallery = document.getElementById("nft-gallery");
-      gallery.innerHTML = "";
+function renderTokenGallery(tokenIds) {
+  const existing = document.getElementById("token-gallery");
+  if (existing) existing.remove();
 
-      tokenIds.forEach(id => {
-        const card = document.createElement("div");
-        card.className = "nft-card";
+  const gallery = document.createElement("div");
+  gallery.id = "token-gallery";
+  gallery.style.display = "flex";
+  gallery.style.flexWrap = "wrap";
+  gallery.style.justifyContent = "center";
+  gallery.style.gap = "10px";
+  gallery.style.marginTop = "10px";
 
-        const img = document.createElement("img");
-        img.src = ipfsGateway(cidMap.default);
-        img.alt = `Token #${id}`;
+  tokenIds.forEach(id => {
+    const btn = document.createElement("button");
+    btn.textContent = `Token #${id}`;
+    btn.className = "nft-button";
+    btn.onclick = () => selectToken(id);
+    gallery.appendChild(btn);
+  });
 
-        const title = document.createElement("h3");
-        title.textContent = `Token #${id}`;
+  document.body.insertBefore(gallery, imgEl);
+}
 
-        const swapBtn = document.createElement("button");
-        swapBtn.className = "swap-btn";
-        swapBtn.textContent = "Swap State";
+async function selectToken(id) {
+  tokenId = id;
+  statusEl.textContent = `Selected Token #${tokenId}`;
 
-        let states = ["default", "state1", "state2"];
-        let stateIndex = 0;
-        swapBtn.onclick = () => {
-          stateIndex = (stateIndex + 1) % states.length;
-          img.src = ipfsGateway(cidMap[states[stateIndex]]);
-        };
+  try {
+    const tokenURI = await nftContract.tokenURI(tokenId);
+    const metadata = await fetch(ipfsGateway(tokenURI)).then(r => r.json());
+    imgEl.src = ipfsGateway(metadata.image);
+    updateMeta(metadata);
+  } catch (err) {
+    console.warn("Metadata fetch failed:", err);
+    imgEl.src = "";
+    metaDisplay.innerHTML = "Metadata not available.";
+  }
+}
 
-        card.appendChild(title);
-        card.appendChild(img);
-        card.appendChild(swapBtn);
-        gallery.appendChild(card);
-      });
-    }
-  </script>
-</body>
-</html>
+function updateMeta(data) {
+  metaDisplay.innerHTML = `
+    <div><strong>Name:</strong> ${data.name}</div>
+    <div><strong>Description:</strong> ${data.description || "None"}</div>
+    ${data.attributes
+      ? `<div><strong>Attributes:</strong><br>${data.attributes
+          .map(a => `${a.trait_type}: ${a.value}`)
+          .join("<br>")}</div>`
+      : ""}
+  `;
+}
