@@ -1,63 +1,78 @@
-const nftContractAddress = window.NFT_CONTRACT_ADDRESS;
+// viewer-gallery.js
+let nftContractAddress = window.NFT_CONTRACT_ADDRESS;
 let provider, signer, nftContract;
-let tokenId, userAddress;
+let tokenId;
+let userAddress;
 
 const imgEl = document.getElementById("nft-img");
 const statusEl = document.getElementById("status");
-const bgEl = document.getElementById("background-layer");
-const metaDisplay = document.getElementById("meta");
+const messageIcon = document.getElementById("message");
+
+const agentDisplay = document.createElement("div");
+agentDisplay.style.color = "#0ff";
+agentDisplay.style.fontSize = "13px";
+agentDisplay.style.marginTop = "10px";
+document.querySelector(".content").appendChild(agentDisplay);
+
+const metaDisplay = document.createElement("div");
+metaDisplay.style.color = "#0ff";
+metaDisplay.style.fontSize = "13px";
+metaDisplay.style.marginTop = "5px";
+document.querySelector(".content").appendChild(metaDisplay);
 
 const ipfsGateway = cid =>
   typeof cid === "string" && cid.startsWith("ipfs://")
     ? `https://ipfs.io/ipfs/${cid.slice(7)}`
     : cid;
 
-window.addEventListener("load", async () => {
-  try {
-    if (!window.ethereum) {
-      statusEl.textContent = "🦊 MetaMask required.";
-      return;
-    }
+window.onload = async () => {
+  if (!window.ethereum) {
+    statusEl.textContent = "🦊 MetaMask required.";
+    return;
+  }
 
+  try {
     provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     signer = provider.getSigner();
     userAddress = await signer.getAddress();
 
-    const nftABI = await fetch("nftABI.json").then(r => r.json());
+    const nftABI = await fetch("nftABI.json").then(res => res.json());
     nftContract = new ethers.Contract(nftContractAddress, nftABI, provider);
 
-    bgEl.style.backgroundImage = `url(${ipfsGateway(window.BACKGROUND_CID)})`;
-
-    const owned = await getOwnedTokens(userAddress);
-    renderTokenGallery(owned);
+    const ownedTokenIds = await getOwnedTokens(userAddress);
+    renderTokenGallery(ownedTokenIds);
 
     const urlParams = new URLSearchParams(window.location.search);
     const urlTokenId = parseInt(urlParams.get("id"));
-    if (!isNaN(urlTokenId) && owned.includes(urlTokenId)) {
+    if (!isNaN(urlTokenId) && ownedTokenIds.includes(urlTokenId)) {
       selectToken(urlTokenId);
-    } else if (owned.length > 0) {
-      selectToken(owned[0]);
+    } else if (ownedTokenIds.length > 0) {
+      selectToken(ownedTokenIds[0]);
     } else {
-      statusEl.textContent = "❌ No NFTs found.";
+      statusEl.textContent = "❌ No NFTs found in your wallet.";
     }
   } catch (err) {
     console.error(err);
     statusEl.textContent = "❌ Connection failed.";
   }
-});
+};
 
 async function getOwnedTokens(address) {
   const maxTokenId = 1000;
   const owned = [];
+
   for (let i = 0; i < maxTokenId; i++) {
     try {
       const owner = await nftContract.ownerOf(i);
       if (owner.toLowerCase() === address.toLowerCase()) {
         owned.push(i);
       }
-    } catch {}
+    } catch (err) {
+      // Skip invalid tokens
+    }
   }
+
   return owned;
 }
 
@@ -81,33 +96,41 @@ function renderTokenGallery(tokenIds) {
     gallery.appendChild(btn);
   });
 
-  document.body.insertBefore(gallery, imgEl);
+  document.querySelector(".content").appendChild(gallery);
 }
 
 async function selectToken(id) {
   tokenId = id;
   statusEl.textContent = `Selected Token #${tokenId}`;
+  await refreshUI();
+}
 
+async function refreshUI() {
   try {
     const tokenURI = await nftContract.tokenURI(tokenId);
-    const metadata = await fetch(ipfsGateway(tokenURI)).then(r => r.json());
-    imgEl.src = ipfsGateway(metadata.image);
-    updateMeta(metadata);
+    const metadata = await fetch(ipfsGateway(tokenURI)).then(res => res.json());
+    const imageCID = metadata.image;
+
+    imgEl.src = ipfsGateway(imageCID);
+    messageIcon.textContent = `🧬 Traits Loaded`;
+    updateMetaDisplay(metadata);
   } catch (err) {
-    console.warn("Metadata fetch failed:", err);
-    imgEl.src = "";
-    metaDisplay.innerHTML = "Metadata not available.";
+    console.error("refreshUI error:", err);
+    statusEl.textContent = "❌ Failed to load token data.";
   }
 }
 
-function updateMeta(data) {
+function updateMetaDisplay(meta) {
+  let traits = "";
+
+  if (meta.attributes && Array.isArray(meta.attributes)) {
+    traits = meta.attributes.map(attr => {
+      return `<div>🔹 <strong>${attr.trait_type}:</strong> ${attr.value}</div>`;
+    }).join("");
+  }
+
   metaDisplay.innerHTML = `
-    <div><strong>Name:</strong> ${data.name}</div>
-    <div><strong>Description:</strong> ${data.description || "None"}</div>
-    ${data.attributes
-      ? `<div><strong>Attributes:</strong><br>${data.attributes
-          .map(a => `${a.trait_type}: ${a.value}`)
-          .join("<br>")}</div>`
-      : ""}
+    <div>🖼️ <strong>Image:</strong> ${meta.image}</div>
+    ${traits}
   `;
 }
