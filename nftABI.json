@@ -1,0 +1,16 @@
+[
+  {
+    "constant": true,
+    "inputs": [{ "name": "tokenId", "type": "uint256" }],
+    "name": "ownerOf",
+    "outputs": [{ "name": "", "type": "address" }],
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "name": "tokenId", "type": "uint256" }],
+    "name": "tokenURI",
+    "outputs": [{ "name": "", "type": "string" }],
+    "type": "function"
+  }
+]
