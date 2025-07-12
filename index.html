@@ -6,7 +6,7 @@
   <title>NFT Gallery Viewer</title>
   <link rel="stylesheet" href="style.css" />
   <script>
-    // 🔧 Replace with your contract address
+    // Replace with your actual NFT contract address
     window.NFT_CONTRACT_ADDRESS = "0xYourNFTContractAddressHere";
   </script>
 </head>
@@ -20,12 +20,14 @@
       <img id="nft-img" class="nft-image" src="" alt="NFT Preview" />
     </div>
 
+    <div id="token-gallery"></div>
+
     <div class="message-icon" id="message">🔍 Waiting...</div>
     <div class="status-text" id="status">🦊 Connect wallet to view NFTs</div>
   </div>
 
-  <!-- 🔗 Load dependencies -->
+  <!-- ✅ Load ethers.js before viewer-gallery.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-  <script type="module" src="viewer-gallery.js"></script>
+  <script src="viewer-gallery.js"></script>
 </body>
 </html>
