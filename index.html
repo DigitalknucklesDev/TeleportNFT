@@ -1,51 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teleport Viewer</title>
-  <link rel="stylesheet" href="style.css" /> 
+  <title>NFT Viewer</title>
+  <link rel="stylesheet" href="viewer-gallery.css" />
+  <script>
+    // ✅ Set these BEFORE JS loads
+    window.NFT_CONTRACT_ADDRESS = "0xYourNFTContractAddressHere";
+    window.BACKGROUND_CID = "ipfs://YourBackgroundImageCID";
+  </script>
 </head>
 <body>
-
   <div class="content">
-  <h1>🎨 NFT Viewer</h1>
-  <div class="nft-container">
-    <img id="nft-img" class="nft-image" src="" alt="NFT Image" />
-  </div>
-  <div id="message" class="message-icon">🖼️</div>
-  <div id="status" class="status-text">Connect Wallet to View</div>
-</div>
-<div id="background-layer" class="background"></div>
-  
-  <div id="background-layer" class="background"></div>
-  <div id="gallery-root"></div>
-  <button id="connect-btn">🔌 Connect Wallet</button>
-  <div class="content">
-    <h1>Teleport NFT Viewer</h1>
+    <h1>🎨 NFT Viewer</h1>
     <div class="nft-container">
-      <img id="nft-img" alt="Teleport NFT" class="nft-image" />
+      <img id="nft-img" class="nft-image" src="" alt="NFT Image" />
     </div>
-    
-    <div id="message" class="message-icon">🟢 Ready</div>
-    <div id="status" class="status-text">Loading...</div>
-    
-    <button id="teleport-btn" class="teleport-button">🚀 Teleport</button>
-    
-    <div class="agent-bar" id="agent">
-      Agent: <span id="agent-address">Detecting...</span>
-    </div>
-
-    <audio id="teleport-sound" preload="auto">
-      <source src="audio/teleport.mp3" type="audio/mpeg" />
-    </audio>
+    <div id="message" class="message-icon">🖼️</div>
+    <div id="status" class="status-text">Connect Wallet to View</div>
+    <div id="meta"></div>
   </div>
+  <div id="background-layer" class="background"></div>
 
-  <!-- Ethers v5 -->
+  <!-- Ethers.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script type="module" src="viewer-gallery.js"></script>
-  <script src="config.js"></script>
-  <script src="viewer.js"></script>
+
+  <!-- Main logic -->
+  <script src="viewer-gallery.js"></script>
 </body>
 </html>
