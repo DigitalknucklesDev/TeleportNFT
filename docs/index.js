@@ -76,7 +76,7 @@ function simulateTeleport(cidKey) {
       overlay.onload = () => {
         setTimeout(() => {
           overlay.classList.add("hidden");
-          nftImage.style.visibility = "visible";
+          nftImage.style.visibility = "hidden";
           simulateTeleport("CID_DEFAULT_2");
 
           currentIndex = stateOrder.indexOf("CID_DEFAULT_2");
