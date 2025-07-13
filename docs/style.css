@@ -130,8 +130,8 @@ button:hover {
 }
 .teleport-float {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 85%;
+  left: 85%;
   transform: translate(-50%, -50%);
   z-index: 10;
   background: rgba(0, 255, 224, 0.15);
