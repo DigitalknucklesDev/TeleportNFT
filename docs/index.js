@@ -41,16 +41,6 @@ window.onload = async () => {
   // Background stays static
   document.getElementById("background-layer").style.backgroundImage = `url("https://ipfs.io/ipfs/bafybeibk5wnczn3q3jhig2mjwb7i6mlfavzkp6wq72pt3b743cjy3s55om")`;
 
-  if (!window.ethereum) {
-    statusEl.textContent = "🦊 MetaMask required.";
-    return;
-  }
-
-  try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
-    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
     statusEl.textContent = `✅ Connected | Token #${tokenId}`;
 
     // Setup toggle button
