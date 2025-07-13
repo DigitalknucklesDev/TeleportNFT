@@ -8,6 +8,7 @@ const overlay = document.getElementById("overlay");
 const statusEl = document.getElementById("status");
 const sound = document.getElementById("teleport-sound");
 const toggleBtn = document.getElementById("teleport-toggle");
+const floatBtn = document.getElementById("teleport-float");
 
 // State order for toggling
 const stateOrder = ["CID_MERGED", "CID_SENDING", "CID_DEFAULT_2", "CID_GHOST"];
@@ -41,6 +42,8 @@ window.onload = () => {
 
   // Setup toggle button
   toggleBtn.addEventListener("click", handleToggle);
+  floatBtn.addEventListener("click", handleToggle);
+
   document.getElementById("teleport-fab").addEventListener("click", handleToggle);
   // Start with initial state
   simulateTeleport(stateOrder[currentIndex]);
