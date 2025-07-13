@@ -128,3 +128,31 @@ button:hover {
   transform: scale(1.1);
   box-shadow: 0 0 15px #00ffe0aa;
 }
+.teleport-float {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: rgba(0, 255, 224, 0.15);
+  border: 2px solid #00ffe0;
+  color: #00ffe0;
+  font-size: 2rem;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px #00ffe088;
+  transition: all 0.3s ease;
+}
+
+.teleport-float:hover {
+  background: rgba(0, 255, 224, 0.25);
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 0 25px #00ffe0cc;
+}
+
+.nft-display {
+  position: relative; /* Ensure floating button can position relative to this */
+}
