@@ -64,6 +64,7 @@ function simulateTeleport(cidKey) {
 
   // Block user toggling during animation
   toggleBtn.disabled = true;
+   floatBtn.disabled = true;
 
   if (cidKey === "CID_SENDING") {
     teleportTransition(() => {
