@@ -80,7 +80,7 @@ function simulateTeleport(cidKey) {
           simulateTeleport("CID_DEFAULT_2");
 
           currentIndex = stateOrder.indexOf("CID_DEFAULT_2");
-        }, 1800);
+        }, 1500);
       };
     });
   } else {
