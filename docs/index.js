@@ -41,7 +41,7 @@ window.onload = () => {
 
   // Setup toggle button
   toggleBtn.addEventListener("click", handleToggle);
-
+  document.getElementById("teleport-fab").addEventListener("click", handleToggle);
   // Start with initial state
   simulateTeleport(stateOrder[currentIndex]);
 };
