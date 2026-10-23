@@ -15,7 +15,7 @@ let contract, signer;
 let tokenId = 1; // Default or from URL param
 
 const ipfsGateway = cid =>
-  cid.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${cid.slice(7)}` : `https://ipfs.io/ipfs/${cid}`;
+  cid.startsWith("ipfs://") ? `https://gold-junior-swordfish-840.mypinata.cloud/ipfs/${cid.slice(7)}` : `https://gold-junior-swordfish-840.mypinata.cloud/ipfs/${cid}`;
 
 // CIDs defined in config.js
 const stateCIDs = {
