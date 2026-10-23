@@ -16,7 +16,7 @@ let currentIndex = 0;
 let tokenId = 1;
 
 const ipfsGateway = cid =>
-  cid.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${cid.slice(7)}` : `https://ipfs.io/ipfs/${cid}`;
+  cid.startsWith("ipfs://") ? `https://gold-junior-swordfish-840.mypinata.cloud/ipfs/${cid.slice(7)}` : `https://gold-junior-swordfish-840.mypinata.cloud/ipfs/${cid}`;
 
 // CID state mapping
 const stateCIDs = {
@@ -33,7 +33,7 @@ window.onload = () => {
   }
 
   document.getElementById("background-layer").style.backgroundImage =
-    `url("https://ipfs.io/ipfs/bafybeibk5wnczn3q3jhig2mjwb7i6mlfavzkp6wq72pt3b743cjy3s55om")`;
+    `url("https://gold-junior-swordfish-840.mypinata.cloud/ipfs/bafybeibk5wnczn3q3jhig2mjwb7i6mlfavzkp6wq72pt3b743cjy3s55om")`;
 
   statusEl.textContent = `📦 Viewing Token #${tokenId}`;
 
