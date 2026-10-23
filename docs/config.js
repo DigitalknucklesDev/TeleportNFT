@@ -8,7 +8,7 @@ window.CONTRACT_ABI = [
 ];
 
 //window.CID_DEFAULT_1 = "ipfs://bafybeiclhpw4ila6u7oejt2zmezxrffl44dxjkxyfjbacawgcighlghr4i";
-window.CID_MERGED     = "ipfs://bafybeiayekrbt5rirlewyq6zfqx6r3ygwfsrwjqdmqohxcr5rmo5c2tadm";
-window.CID_SENDING    = "ipfs://bafybeidg666nftsarlydxxcwojxnqjfa3nov74gdkv7w5jugmq7fu5qs3a";
-window.CID_DEFAULT_2 = "ipfs://bafybeieiht7rijbauvain7fjz7ankjocrk4bz6d7vprqpscmuvfuevbmhy";
-window.CID_GHOST      = "ipfs://bafybeigddxpm5fjmhxjmtwndbj7f47uuoknnzebpfvy4revunbggaaxeg4";
+window.CID_MERGED     = "https://gold-junior-swordfish-840.mypinata.cloud/ipfs/bafybeiayekrbt5rirlewyq6zfqx6r3ygwfsrwjqdmqohxcr5rmo5c2tadm";
+window.CID_SENDING    = "https://gold-junior-swordfish-840.mypinata.cloud/ipfs/bafybeidg666nftsarlydxxcwojxnqjfa3nov74gdkv7w5jugmq7fu5qs3a";
+window.CID_DEFAULT_2 = "https://gold-junior-swordfish-840.mypinata.cloud/ipfs/bafybeieiht7rijbauvain7fjz7ankjocrk4bz6d7vprqpscmuvfuevbmhy";
+window.CID_GHOST      = "https://gold-junior-swordfish-840.mypinata.cloud/ipfs/bafybeigddxpm5fjmhxjmtwndbj7f47uuoknnzebpfvy4revunbggaaxeg4";
