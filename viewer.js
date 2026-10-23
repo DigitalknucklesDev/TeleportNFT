@@ -18,7 +18,7 @@ document.body.appendChild(metaDisplay);
 
 const ipfsGateway = cid =>
   typeof cid === "string" && cid.startsWith("ipfs://")
-    ? `https://ipfs.io/ipfs/${cid.slice(7)}`
+    ? `https://gold-junior-swordfish-840.mypinata.cloud/ipfs/${cid.slice(7)}`
     : cid;
 
 window.addEventListener("load", async () => {
